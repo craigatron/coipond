@@ -1,4 +1,4 @@
-import { CopyAll } from "@mui/icons-material";
+import { CopyAll, Share } from "@mui/icons-material";
 import {
   Card,
   CardActionArea,
@@ -59,6 +59,15 @@ export default function BlueprintCard(props: {
     });
   };
 
+  const handleShareClick = () => {
+    const url = `${window.location.origin}/blueprints/${props.blueprintId}`;
+    navigator.clipboard.writeText(url);
+    enqueueSnackbar("Copied blueprint URL!", {
+      variant: "success",
+      anchorOrigin: { vertical: "top", horizontal: "center" },
+    });
+  };
+
   return (
     <Card variant="outlined" sx={{ maxHeight: 450, width: 400, maxWidth: 400 }}>
       <CardActionArea component={Link} to={`/blueprints/${props.blueprintId}`}>
@@ -92,6 +101,15 @@ export default function BlueprintCard(props: {
         >
           <CopyAll />
         </IconButton>
+        {props.blueprintId !== undefined && (
+          <IconButton
+            onClick={handleShareClick}
+            aria-label="Copy URL"
+            title="Copy URL"
+          >
+            <Share />
+          </IconButton>
+        )}
       </CardActions>
     </Card>
   );

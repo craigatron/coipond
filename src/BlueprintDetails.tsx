@@ -1,5 +1,8 @@
-import { CopyAll } from "@mui/icons-material";
+import { CopyAll, ExpandMore } from "@mui/icons-material";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Button,
   CircularProgress,
@@ -277,34 +280,44 @@ export default function BlueprintDetails() {
           </Grid>
           <Grid item xs={12} md={8}>
             <Stack spacing={2}>
-              <Paper variant="outlined" sx={{ padding: 2 }}>
+              <Paper sx={{ padding: 2 }}>
                 <Typography variant="h6">Description</Typography>
                 <Typography variant="body1" sx={{ mt: 1 }}>
                   {blueprintDoc.description || "none"}
                 </Typography>
               </Paper>
-              <Paper variant="outlined" sx={{ padding: 2 }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Typography variant="h6">Blueprint</Typography>
-                  <IconButton
-                    onClick={handleCopyClick}
-                    aria-label="Copy blueprint"
+              <Accordion defaultExpanded>
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="h6">Blueprint</Typography>
+                    <IconButton
+                      onClick={handleCopyClick}
+                      aria-label="Copy blueprint"
+                    >
+                      <CopyAll />
+                    </IconButton>
+                  </Stack>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography
+                    variant="body1"
+                    sx={{ mt: 1, wordBreak: "break-word" }}
                   >
-                    <CopyAll />
-                  </IconButton>
-                </Stack>
-                <Typography
-                  variant="body1"
-                  sx={{ mt: 1, wordBreak: "break-word" }}
-                >
-                  {blueprintDoc.blueprint}
-                </Typography>
-              </Paper>
+                    {blueprintDoc.blueprint}
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
               {parsedBlueprint !== null && (
-                <Paper variant="outlined" sx={{ padding: 2 }}>
-                  <Typography variant="h6">Blueprint details</Typography>
-                  <pre>{JSON.stringify(parsedBlueprint.rawItems, null, 2)}</pre>
-                </Paper>
+                <Accordion>
+                  <AccordionSummary expandIcon={<ExpandMore />}>
+                    <Typography variant="h6">Blueprint details</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <pre>
+                      {JSON.stringify(parsedBlueprint.rawItems, null, 2)}
+                    </pre>
+                  </AccordionDetails>
+                </Accordion>
               )}
             </Stack>
           </Grid>
