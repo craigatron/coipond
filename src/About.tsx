@@ -12,11 +12,15 @@ export default function About() {
         </Typography>
         <Typography variant="body1" sx={{ mt: 1 }}>
           Feel free to get in touch with me at{" "}
-          <Link href="mailto:craig@martek.dev">craig@martek.dev</Link> or on the{" "}
+          <Link href="mailto:craig@martek.dev">craig@martek.dev</Link>, on the{" "}
           <Link href="https://discord.com/invite/captain-of-industry-803508556325584926">
             Captain of Industry discord
-          </Link>{" "}
-          with any bugs or feature requests.
+          </Link>
+          , or file an issue on{" "}
+          <Link href="https://github.com/craigatron/coipond/issues">
+            the GitHub repo
+          </Link>
+          .
         </Typography>
         <Typography variant="h6" sx={{ mt: 2 }}>
           Features coming eventually, roughly in order of my plans to build them
@@ -26,7 +30,7 @@ export default function About() {
             <li>See blueprints by user</li>
             <li>Add new versions of an existing blueprint</li>
             <li>Sort by game version</li>
-            <li>Update/delete blueprints</li>
+            <li>Update blueprints</li>
             <li>Ratings</li>
             <li>See required research / downgradability</li>
             <li>Support for blueprint folders</li>
