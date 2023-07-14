@@ -1,4 +1,11 @@
-import { CopyAll, ExpandMore } from "@mui/icons-material";
+import {
+  Cancel,
+  CopyAll,
+  DeleteForever,
+  Edit,
+  ExpandMore,
+  Save,
+} from "@mui/icons-material";
 import {
   Accordion,
   AccordionDetails,
@@ -15,6 +22,7 @@ import {
   IconButton,
   Paper,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import { Blueprint, parseBlueprint } from "coi-bp-parse";
@@ -23,6 +31,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
 import {
@@ -32,12 +41,13 @@ import {
   uploadBytes,
 } from "firebase/storage";
 import { DateTime } from "luxon";
-import { enqueueSnackbar } from "notistack";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 import { useNavigate, useParams } from "react-router-dom";
 import noscreenshot from "./assets/noscreenshot.png";
 import { useFirebaseAuth } from "./context/FirebaseAuthContext";
 import { BlueprintDoc, db, storage } from "./services/firebase";
+import { errorSnack, successSnack } from "./utils";
 
 export default function BlueprintDetails() {
   const { user } = useFirebaseAuth();
@@ -53,6 +63,11 @@ export default function BlueprintDetails() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fileToUpload, setFileToUpload] = useState<File | undefined>(undefined);
   const [fileUploading, setFileUploading] = useState(false);
+
+  const [nameEditing, setNameEditing] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [descriptionEditing, setDescriptionEditing] = useState(false);
+  const [newDescription, setNewDescription] = useState("");
 
   useEffect(() => {
     const docFetch = async () => {
@@ -80,10 +95,7 @@ export default function BlueprintDetails() {
           setParsedBlueprint(parseBlueprint(blueprintString));
         } catch (e) {
           console.error(e);
-          enqueueSnackbar("Could not parse blueprint", {
-            variant: "error",
-            anchorOrigin: { vertical: "top", horizontal: "center" },
-          });
+          errorSnack("Could not parse blueprint");
         }
       }
     };
@@ -115,10 +127,7 @@ export default function BlueprintDetails() {
           blueprintDoc.screenshotUrl = screenshotUrl;
           updateDoc(doc(db, "blueprints", blueprintId), { screenshotUrl });
         } catch (e) {
-          enqueueSnackbar("Could not update screenshot", {
-            variant: "error",
-            anchorOrigin: { vertical: "top", horizontal: "center" },
-          });
+          errorSnack("Could not update screenshot");
         }
         setFileToUpload(undefined);
         setFileUploading(false);
@@ -127,16 +136,15 @@ export default function BlueprintDetails() {
     uploadScreenshot();
   }, [blueprintDoc, blueprintId, fileToUpload]);
 
-  const handleCopyClick = () => {
+  const handleCopyClick = (e: React.MouseEvent) => {
+    // don't trigger the accordion's click event
+    e.stopPropagation();
     if (blueprintDoc === null) {
       return;
     }
 
     navigator.clipboard.writeText(blueprintDoc.blueprint);
-    enqueueSnackbar("Copied blueprint!", {
-      variant: "success",
-      anchorOrigin: { vertical: "top", horizontal: "center" },
-    });
+    successSnack("Copied blueprint!");
   };
 
   if (invalid) {
@@ -172,17 +180,11 @@ export default function BlueprintDetails() {
       await deleteDoc(doc(db, "blueprints", blueprintId));
     } catch (e) {
       console.error(e);
-      enqueueSnackbar("Could not delete blueprint", {
-        variant: "error",
-        anchorOrigin: { vertical: "top", horizontal: "center" },
-      });
+      errorSnack("Could not delete blueprint");
       return;
     }
 
-    enqueueSnackbar("Deleted blueprint!", {
-      variant: "success",
-      anchorOrigin: { vertical: "top", horizontal: "center" },
-    });
+    successSnack("Deleted blueprint!");
     setDeleteDialogOpen(false);
 
     // index can take a bit to catch up, stash deleted blueprints
@@ -196,16 +198,106 @@ export default function BlueprintDetails() {
     navigate("/blueprints");
   };
 
+  const onSaveNameClick = async () => {
+    if (!newName.trim()) {
+      errorSnack("Must specify a name");
+      return;
+    }
+
+    setNameEditing(false);
+    try {
+      await updateDoc(doc(db, "blueprints", blueprintId || ""), {
+        name: newName,
+        updated: serverTimestamp(),
+      });
+      setBlueprintDoc({
+        ...blueprintDoc,
+        name: newName,
+        updated: Timestamp.fromDate(new Date()),
+      });
+      successSnack("Updated!");
+    } catch (e) {
+      errorSnack("Could not update name");
+    }
+  };
+
+  const onSaveDescriptionClick = async () => {
+    setDescriptionEditing(false);
+    try {
+      await updateDoc(doc(db, "blueprints", blueprintId || ""), {
+        description: newDescription,
+        updated: serverTimestamp(),
+      });
+      setBlueprintDoc({
+        ...blueprintDoc,
+        description: newDescription,
+        updated: Timestamp.fromDate(new Date()),
+      });
+      successSnack("Updated!");
+    } catch (e) {
+      errorSnack("Could not update description");
+    }
+  };
+
   return (
     <>
       <Box maxWidth="lg" margin="auto" width="1" sx={{ mt: 4, mb: 2 }}>
         {" "}
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Typography variant="h4">{blueprintDoc.name}</Typography>
-          {canEdit && (
-            <Button color="error" onClick={() => setDeleteDialogOpen(true)}>
-              Delete
-            </Button>
+        <Stack direction="row" spacing={1} alignItems="center">
+          {nameEditing && (
+            <>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="name"
+                label="Name"
+                name="name"
+                inputProps={{ maxLength: 50 }}
+                value={newName}
+                onChange={(e) => setNewName(e.target.value.trim())}
+              />
+              <IconButton
+                title="Save"
+                color="primary"
+                onClick={onSaveNameClick}
+              >
+                <Save />
+              </IconButton>
+              <IconButton
+                title="Cancel"
+                color="error"
+                onClick={() => setNameEditing(false)}
+              >
+                <Cancel />
+              </IconButton>
+            </>
+          )}
+          {!nameEditing && (
+            <>
+              <Typography variant="h4">{blueprintDoc.name}</Typography>
+              {canEdit && (
+                <>
+                  <IconButton
+                    color="primary"
+                    title="Edit name"
+                    onClick={() => {
+                      setNewName(blueprintDoc.name);
+                      setNameEditing(true);
+                    }}
+                  >
+                    <Edit />
+                  </IconButton>
+                  <IconButton
+                    color="error"
+                    title="Delete blueprint"
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <DeleteForever />
+                  </IconButton>
+                </>
+              )}
+            </>
           )}
         </Stack>
         <Grid container spacing={2} sx={{ mt: 2 }}>
@@ -264,13 +356,13 @@ export default function BlueprintDetails() {
               <Typography variant="body1" sx={{ mt: 1 }}>
                 Last updated{" "}
                 {DateTime.fromJSDate(
-                  (blueprintDoc.updated as Timestamp).toDate()
+                  blueprintDoc.updated.toDate()
                 ).toLocaleString(DateTime.DATETIME_MED)}
               </Typography>
               <Typography variant="body1">
                 Created{" "}
                 {DateTime.fromJSDate(
-                  (blueprintDoc.created as Timestamp).toDate()
+                  blueprintDoc.created.toDate()
                 ).toLocaleString(DateTime.DATETIME_MED)}
               </Typography>
               <Typography variant="body1" sx={{ mt: 1 }}>
@@ -281,10 +373,61 @@ export default function BlueprintDetails() {
           <Grid item xs={12} md={8}>
             <Stack spacing={2}>
               <Paper sx={{ padding: 2 }}>
-                <Typography variant="h6">Description</Typography>
-                <Typography variant="body1" sx={{ mt: 1 }}>
-                  {blueprintDoc.description || "none"}
-                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="h6">Description</Typography>
+                  {canEdit && !descriptionEditing && (
+                    <IconButton
+                      color="primary"
+                      title="Edit description"
+                      onClick={() => {
+                        setNewDescription(blueprintDoc.description);
+                        setDescriptionEditing(true);
+                      }}
+                    >
+                      <Edit />
+                    </IconButton>
+                  )}
+                  {canEdit && descriptionEditing && (
+                    <>
+                      <IconButton
+                        title="Save"
+                        color="primary"
+                        onClick={onSaveDescriptionClick}
+                      >
+                        <Save />
+                      </IconButton>
+                      <IconButton
+                        title="Cancel"
+                        color="error"
+                        onClick={() => setDescriptionEditing(false)}
+                      >
+                        <Cancel />
+                      </IconButton>
+                    </>
+                  )}
+                </Stack>
+                {descriptionEditing && (
+                  <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    multiline
+                    minRows={4}
+                    maxRows={10}
+                    id="description"
+                    label="Description (supports markdown)"
+                    name="description"
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                  />
+                )}
+                {!descriptionEditing && (
+                  <Typography variant="body1" sx={{ mt: 1 }} component="div">
+                    <ReactMarkdown>
+                      {blueprintDoc.description || "none"}
+                    </ReactMarkdown>
+                  </Typography>
+                )}
               </Paper>
               <Accordion defaultExpanded>
                 <AccordionSummary expandIcon={<ExpandMore />}>

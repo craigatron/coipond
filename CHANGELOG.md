@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2023-07-14
+
+### Added
+
+- Update name and description
+- Markdown support in descriptions
+
 ## 2023-07-13
 
 ### Added

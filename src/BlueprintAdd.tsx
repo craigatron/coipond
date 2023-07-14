@@ -138,10 +138,13 @@ export default function BlueprintAdd() {
             />
             <TextField
               margin="normal"
+              multiline
+              minRows={4}
+              maxRows={10}
               required
               fullWidth
               id="description"
-              label="Description"
+              label="Description (supports markdown)"
               name="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
