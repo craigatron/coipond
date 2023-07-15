@@ -22,15 +22,23 @@ import {
   IconButton,
   Paper,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Typography,
 } from "@mui/material";
 import { Blueprint, parseBlueprint } from "coi-bp-parse";
 import {
   Timestamp,
+  collection,
   deleteDoc,
   doc,
   getDoc,
+  runTransaction,
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
@@ -46,7 +54,12 @@ import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 import { useNavigate, useParams } from "react-router-dom";
 import noscreenshot from "./assets/noscreenshot.png";
 import { useFirebaseAuth } from "./context/FirebaseAuthContext";
-import { BlueprintDoc, db, storage } from "./services/firebase";
+import {
+  BlueprintDoc,
+  BlueprintVersion,
+  db,
+  storage,
+} from "./services/firebase";
 import { errorSnack, successSnack } from "./utils";
 
 export default function BlueprintDetails() {
@@ -58,6 +71,9 @@ export default function BlueprintDetails() {
   const [parsedBlueprint, setParsedBlueprint] = useState<Blueprint | null>(
     null
   );
+  const [blueprintVersions, setBlueprintVersions] =
+    useState<BlueprintVersion | null>(null);
+
   const [invalid, setInvalid] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -68,10 +84,23 @@ export default function BlueprintDetails() {
   const [newName, setNewName] = useState("");
   const [descriptionEditing, setDescriptionEditing] = useState(false);
   const [newDescription, setNewDescription] = useState("");
+  const [blueprintEditing, setBlueprintEditing] = useState(false);
+  const [newBlueprint, setNewBlueprint] = useState("");
+  const [newParsedBlueprint, setNewParsedBlueprint] =
+    useState<Blueprint | null>(null);
+
+  const [disableSave, setDisableSave] = useState(false);
+
+  const [bpDetailsOpen, setBpDetailsOpen] = useState(true);
 
   useEffect(() => {
+    if (!blueprintId) {
+      setInvalid(true);
+      return;
+    }
+
     const docFetch = async () => {
-      const docRef = doc(db, "blueprints", blueprintId || "");
+      const docRef = doc(db, "blueprints", blueprintId);
       let blueprintString: string | undefined;
       try {
         const bpDoc = await getDoc(docRef);
@@ -86,6 +115,17 @@ export default function BlueprintDetails() {
         setInvalid(true);
         setLoading(false);
         return;
+      }
+
+      try {
+        const versionsDoc = await getDoc(
+          doc(db, "blueprintVersions", blueprintId)
+        );
+        if (versionsDoc.exists()) {
+          setBlueprintVersions(versionsDoc.data() as BlueprintVersion);
+        }
+      } catch (e) {
+        console.error(e);
       }
 
       setLoading(false);
@@ -136,6 +176,24 @@ export default function BlueprintDetails() {
     uploadScreenshot();
   }, [blueprintDoc, blueprintId, fileToUpload]);
 
+  useEffect(() => {
+    if (newBlueprint) {
+      try {
+        setNewParsedBlueprint(parseBlueprint(newBlueprint));
+      } catch (e) {
+        console.error(e);
+        setNewParsedBlueprint(null);
+      }
+    } else {
+      setNewParsedBlueprint(null);
+    }
+  }, [newBlueprint]);
+
+  const copyBlueprintToClipboard = (bp: string) => {
+    navigator.clipboard.writeText(bp);
+    successSnack("Copied blueprint!");
+  };
+
   const handleCopyClick = (e: React.MouseEvent) => {
     // don't trigger the accordion's click event
     e.stopPropagation();
@@ -143,8 +201,7 @@ export default function BlueprintDetails() {
       return;
     }
 
-    navigator.clipboard.writeText(blueprintDoc.blueprint);
-    successSnack("Copied blueprint!");
+    copyBlueprintToClipboard(blueprintDoc.blueprint);
   };
 
   if (invalid) {
@@ -199,11 +256,15 @@ export default function BlueprintDetails() {
   };
 
   const onSaveNameClick = async () => {
+    if (disableSave) {
+      return;
+    }
     if (!newName.trim()) {
       errorSnack("Must specify a name");
       return;
     }
 
+    setDisableSave(true);
     setNameEditing(false);
     try {
       await updateDoc(doc(db, "blueprints", blueprintId || ""), {
@@ -219,9 +280,14 @@ export default function BlueprintDetails() {
     } catch (e) {
       errorSnack("Could not update name");
     }
+    setDisableSave(false);
   };
 
   const onSaveDescriptionClick = async () => {
+    if (disableSave) {
+      return;
+    }
+    setDisableSave(true);
     setDescriptionEditing(false);
     try {
       await updateDoc(doc(db, "blueprints", blueprintId || ""), {
@@ -237,6 +303,78 @@ export default function BlueprintDetails() {
     } catch (e) {
       errorSnack("Could not update description");
     }
+    setDisableSave(false);
+  };
+
+  const onSaveBlueprintClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user || !newParsedBlueprint) {
+      return;
+    }
+    if (newBlueprint === blueprintDoc.blueprint) {
+      setBlueprintEditing(false);
+      setNewParsedBlueprint(null);
+      return;
+    }
+    setDisableSave(true);
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const versionRef = doc(
+          collection(db, "blueprintVersions"),
+          blueprintId
+        );
+        const versionDoc = await transaction.get(versionRef);
+        if (versionDoc.exists()) {
+          transaction.update(versionRef, {
+            versions: [
+              {
+                blueprint: newBlueprint,
+                created: Timestamp.fromDate(new Date()), // serverTimestamp not supported inside arrays :(
+                gameVersion: newParsedBlueprint.gameVersion,
+              },
+              ...versionDoc.data().versions,
+            ],
+          });
+        } else {
+          transaction.set(versionRef, {
+            uid: user.uid,
+            versions: [
+              {
+                blueprint: newBlueprint,
+                created: Timestamp.fromDate(new Date()),
+                gameVersion: newParsedBlueprint.gameVersion,
+              },
+              {
+                blueprint: blueprintDoc.blueprint,
+                created: blueprintDoc.created,
+                gameVersion: blueprintDoc.gameVersion,
+              },
+            ],
+          });
+        }
+
+        const docRef = doc(db, "blueprints", blueprintId || "");
+        transaction.update(docRef, {
+          blueprint: newBlueprint,
+          gameVersion: newParsedBlueprint.gameVersion,
+          updated: serverTimestamp(),
+        });
+      });
+      setBlueprintEditing(false);
+      setBlueprintDoc({
+        ...blueprintDoc,
+        blueprint: newBlueprint,
+        gameVersion: newParsedBlueprint.gameVersion,
+        updated: Timestamp.fromDate(new Date()),
+      });
+      setNewParsedBlueprint(null);
+      successSnack("Blueprint updated!");
+    } catch (e) {
+      console.error(e);
+      errorSnack("Could not update blueprint");
+    }
+    setDisableSave(false);
   };
 
   return (
@@ -260,6 +398,7 @@ export default function BlueprintDetails() {
               <IconButton
                 title="Save"
                 color="primary"
+                disabled={disableSave}
                 onClick={onSaveNameClick}
               >
                 <Save />
@@ -368,6 +507,48 @@ export default function BlueprintDetails() {
               <Typography variant="body1" sx={{ mt: 1 }}>
                 Created with game version {blueprintDoc.gameVersion}
               </Typography>
+              {blueprintVersions && (
+                <>
+                  <Typography variant="h6" sx={{ mt: 2 }}>
+                    Version history
+                  </Typography>
+                  <TableContainer component={Paper} sx={{ mt: 1 }}>
+                    <Table aria-label="version history table" size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Created</TableCell>
+                          <TableCell>Game version</TableCell>
+                          <TableCell />
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {blueprintVersions.versions.map((v) => (
+                          <TableRow key={v.created.toMillis()}>
+                            <TableCell>
+                              {DateTime.fromMillis(
+                                v.created.toMillis()
+                              ).toLocaleString(DateTime.DATETIME_MED)}
+                            </TableCell>
+                            <TableCell>{v.gameVersion}</TableCell>
+                            <TableCell>
+                              <IconButton
+                                onClick={() =>
+                                  copyBlueprintToClipboard(
+                                    blueprintDoc.blueprint
+                                  )
+                                }
+                                aria-label="Copy blueprint"
+                              >
+                                <CopyAll />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </>
+              )}
             </Stack>
           </Grid>
           <Grid item xs={12} md={8}>
@@ -392,6 +573,7 @@ export default function BlueprintDetails() {
                       <IconButton
                         title="Save"
                         color="primary"
+                        disabled={disableSave}
                         onClick={onSaveDescriptionClick}
                       >
                         <Save />
@@ -429,7 +611,11 @@ export default function BlueprintDetails() {
                   </Typography>
                 )}
               </Paper>
-              <Accordion defaultExpanded>
+              <Accordion
+                defaultExpanded
+                expanded={bpDetailsOpen}
+                onChange={(_, isExpanded) => setBpDetailsOpen(isExpanded)}
+              >
                 <AccordionSummary expandIcon={<ExpandMore />}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Typography variant="h6">Blueprint</Typography>
@@ -439,15 +625,74 @@ export default function BlueprintDetails() {
                     >
                       <CopyAll />
                     </IconButton>
+                    {canEdit && !blueprintEditing && bpDetailsOpen && (
+                      <IconButton
+                        color="primary"
+                        title="Edit blueprint"
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          setNewBlueprint(blueprintDoc.blueprint);
+                          setNewParsedBlueprint(parsedBlueprint);
+                          setBlueprintEditing(true);
+                        }}
+                      >
+                        <Edit />
+                      </IconButton>
+                    )}
+                    {canEdit && blueprintEditing && bpDetailsOpen && (
+                      <>
+                        <IconButton
+                          title="Save"
+                          color="primary"
+                          disabled={disableSave || !newParsedBlueprint}
+                          onClick={onSaveBlueprintClick}
+                        >
+                          <Save />
+                        </IconButton>
+                        <IconButton
+                          title="Cancel"
+                          color="error"
+                          onClick={(e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            setBlueprintEditing(false);
+                          }}
+                        >
+                          <Cancel />
+                        </IconButton>
+                      </>
+                    )}
                   </Stack>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Typography
-                    variant="body1"
-                    sx={{ mt: 1, wordBreak: "break-word" }}
-                  >
-                    {blueprintDoc.blueprint}
-                  </Typography>
+                  {blueprintEditing && (
+                    <TextField
+                      margin="normal"
+                      required
+                      fullWidth
+                      multiline
+                      minRows={4}
+                      maxRows={10}
+                      id="blueprint"
+                      label="Blueprint"
+                      name="blueprint"
+                      value={newBlueprint}
+                      error={!newBlueprint || !newParsedBlueprint}
+                      helperText={
+                        !newBlueprint || !newParsedBlueprint
+                          ? "Invalid blueprint"
+                          : undefined
+                      }
+                      onChange={(e) => setNewBlueprint(e.target.value)}
+                    />
+                  )}
+                  {!blueprintEditing && (
+                    <Typography
+                      variant="body1"
+                      sx={{ mt: 1, wordBreak: "break-word" }}
+                    >
+                      {blueprintDoc.blueprint}
+                    </Typography>
+                  )}
                 </AccordionDetails>
               </Accordion>
               {parsedBlueprint !== null && (
