@@ -67,7 +67,6 @@ export default function BlueprintAdd() {
       gameVersion: parsedBlueprint?.gameVersion || "",
       views: 0,
       downloads: 0,
-      versions: [],
       created: uploadTime,
       updated: uploadTime,
     });

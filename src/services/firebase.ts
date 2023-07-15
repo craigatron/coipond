@@ -29,10 +29,18 @@ interface BlueprintDoc {
   gameVersion: string;
   views: number;
   downloads: number;
-  versions: { uploaded: Timestamp; gameVersion: string; blueprint: string }[];
   created: Timestamp;
   updated: Timestamp;
   screenshotUrl?: string;
+}
+
+interface BlueprintVersion {
+  uid: string;
+  versions: {
+    blueprint: string;
+    gameVersion: string;
+    created: Timestamp;
+  }[];
 }
 
 const app = initializeApp(JSON.parse(import.meta.env.VITE_FIREBASE_CONFIG));
@@ -92,4 +100,5 @@ export {
   sendPasswordReset,
   storage,
   type BlueprintDoc,
+  type BlueprintVersion,
 };

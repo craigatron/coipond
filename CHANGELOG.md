@@ -4,7 +4,8 @@
 
 ### Added
 
-- Update name and description
+- Update name, description, and blueprint string
+- Version history on details page
 - Markdown support in descriptions
 
 ## 2023-07-13
