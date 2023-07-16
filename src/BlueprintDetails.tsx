@@ -4,7 +4,10 @@ import {
   DeleteForever,
   Edit,
   ExpandMore,
+  Folder,
+  FolderOpen,
   Save,
+  TextSnippet,
 } from "@mui/icons-material";
 import {
   Accordion,
@@ -31,7 +34,11 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { Blueprint, parseBlueprint } from "coi-bp-parse";
+import {
+  Blueprint,
+  BlueprintFolder,
+  parseBlueprintOrFolder,
+} from "coi-bp-parse";
 import {
   Timestamp,
   collection,
@@ -50,8 +57,10 @@ import {
 } from "firebase/storage";
 import { DateTime } from "luxon";
 import React, { useEffect, useState } from "react";
+import TreeView, { flattenTree } from "react-accessible-treeview";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 import { useNavigate, useParams } from "react-router-dom";
+import "./BlueprintDetails.css";
 import noscreenshot from "./assets/noscreenshot.png";
 import { useFirebaseAuth } from "./context/FirebaseAuthContext";
 import {
@@ -60,7 +69,7 @@ import {
   db,
   storage,
 } from "./services/firebase";
-import { errorSnack, successSnack } from "./utils";
+import { errorSnack, getMinGameVersion, successSnack } from "./utils";
 
 export default function BlueprintDetails() {
   const { user } = useFirebaseAuth();
@@ -68,9 +77,9 @@ export default function BlueprintDetails() {
   const { blueprintId } = useParams();
   const [loading, setLoading] = useState(true);
   const [blueprintDoc, setBlueprintDoc] = useState<BlueprintDoc | null>(null);
-  const [parsedBlueprint, setParsedBlueprint] = useState<Blueprint | null>(
-    null
-  );
+  const [parsedBlueprint, setParsedBlueprint] = useState<
+    Blueprint | BlueprintFolder | null
+  >(null);
   const [blueprintVersions, setBlueprintVersions] =
     useState<BlueprintVersion | null>(null);
 
@@ -86,8 +95,10 @@ export default function BlueprintDetails() {
   const [newDescription, setNewDescription] = useState("");
   const [blueprintEditing, setBlueprintEditing] = useState(false);
   const [newBlueprint, setNewBlueprint] = useState("");
-  const [newParsedBlueprint, setNewParsedBlueprint] =
-    useState<Blueprint | null>(null);
+  const [newParsedBlueprint, setNewParsedBlueprint] = useState<
+    Blueprint | BlueprintFolder | null
+  >(null);
+  const [newMinGameVersion, setNewMinGameVersion] = useState("");
 
   const [disableSave, setDisableSave] = useState(false);
 
@@ -132,7 +143,7 @@ export default function BlueprintDetails() {
 
       if (blueprintString) {
         try {
-          setParsedBlueprint(parseBlueprint(blueprintString));
+          setParsedBlueprint(parseBlueprintOrFolder(blueprintString));
         } catch (e) {
           console.error(e);
           errorSnack("Could not parse blueprint");
@@ -179,7 +190,13 @@ export default function BlueprintDetails() {
   useEffect(() => {
     if (newBlueprint) {
       try {
-        setNewParsedBlueprint(parseBlueprint(newBlueprint));
+        const bpOrFolder = parseBlueprintOrFolder(newBlueprint);
+        setNewParsedBlueprint(bpOrFolder);
+        if (bpOrFolder.kind === "folder") {
+          setNewMinGameVersion(getMinGameVersion(bpOrFolder));
+        } else {
+          setNewMinGameVersion("");
+        }
       } catch (e) {
         console.error(e);
         setNewParsedBlueprint(null);
@@ -331,7 +348,10 @@ export default function BlueprintDetails() {
               {
                 blueprint: newBlueprint,
                 created: Timestamp.fromDate(new Date()), // serverTimestamp not supported inside arrays :(
-                gameVersion: newParsedBlueprint.gameVersion,
+                gameVersion:
+                  newParsedBlueprint.kind === "blueprint"
+                    ? newParsedBlueprint.gameVersion
+                    : newMinGameVersion,
               },
               ...versionDoc.data().versions,
             ],
@@ -343,7 +363,10 @@ export default function BlueprintDetails() {
               {
                 blueprint: newBlueprint,
                 created: Timestamp.fromDate(new Date()),
-                gameVersion: newParsedBlueprint.gameVersion,
+                gameVersion:
+                  newParsedBlueprint.kind === "blueprint"
+                    ? newParsedBlueprint.gameVersion
+                    : newMinGameVersion,
               },
               {
                 blueprint: blueprintDoc.blueprint,
@@ -357,7 +380,11 @@ export default function BlueprintDetails() {
         const docRef = doc(db, "blueprints", blueprintId || "");
         transaction.update(docRef, {
           blueprint: newBlueprint,
-          gameVersion: newParsedBlueprint.gameVersion,
+          gameVersion:
+            newParsedBlueprint.kind === "blueprint"
+              ? newParsedBlueprint.gameVersion
+              : newMinGameVersion,
+          kind: newParsedBlueprint.kind === "folder" ? "f" : "b",
           updated: serverTimestamp(),
         });
       });
@@ -365,7 +392,10 @@ export default function BlueprintDetails() {
       setBlueprintDoc({
         ...blueprintDoc,
         blueprint: newBlueprint,
-        gameVersion: newParsedBlueprint.gameVersion,
+        gameVersion:
+          newParsedBlueprint.kind === "blueprint"
+            ? newParsedBlueprint.gameVersion
+            : newMinGameVersion,
         updated: Timestamp.fromDate(new Date()),
       });
       setNewParsedBlueprint(null);
@@ -375,6 +405,29 @@ export default function BlueprintDetails() {
       errorSnack("Could not update blueprint");
     }
     setDisableSave(false);
+  };
+
+  const getTreeViewData = (folder: BlueprintFolder): any => {
+    const children = [];
+    for (const bp of folder.blueprints) {
+      children.push({
+        name: `${bp.name} (version: ${bp.gameVersion})`,
+      });
+    }
+    for (const subfolder of folder.blueprintFolders) {
+      children.push(getTreeViewData(subfolder));
+    }
+    return {
+      name: folder.name,
+      children,
+    };
+  };
+
+  const getTreeViewDataRoot = () => {
+    if (parsedBlueprint?.kind !== "folder") {
+      throw new Error("cannot get tree view for blueprint");
+    }
+    return flattenTree(getTreeViewData(parsedBlueprint));
   };
 
   return (
@@ -505,7 +558,10 @@ export default function BlueprintDetails() {
                 ).toLocaleString(DateTime.DATETIME_MED)}
               </Typography>
               <Typography variant="body1" sx={{ mt: 1 }}>
-                Created with game version {blueprintDoc.gameVersion}
+                {blueprintDoc.kind === "f"
+                  ? "Minimum game version"
+                  : "Created with game version"}{" "}
+                {blueprintDoc.gameVersion}
               </Typography>
               {blueprintVersions && (
                 <>
@@ -611,6 +667,39 @@ export default function BlueprintDetails() {
                   </Typography>
                 )}
               </Paper>
+              {blueprintDoc.kind === "f" && (
+                <Paper sx={{ padding: 2 }} className="folder">
+                  <Typography variant="h6" sx={{ mb: 2 }}>
+                    Folder contents
+                  </Typography>
+                  <TreeView
+                    data={getTreeViewDataRoot()}
+                    nodeRenderer={({
+                      element,
+                      isBranch,
+                      isExpanded,
+                      getNodeProps,
+                      level,
+                    }) => (
+                      <div
+                        {...getNodeProps()}
+                        style={{ paddingLeft: 20 * (level - 1) }}
+                      >
+                        {isBranch ? (
+                          isExpanded ? (
+                            <FolderOpen />
+                          ) : (
+                            <Folder />
+                          )
+                        ) : (
+                          <TextSnippet />
+                        )}
+                        {element.name}
+                      </div>
+                    )}
+                  />
+                </Paper>
+              )}
               <Accordion
                 defaultExpanded
                 expanded={bpDetailsOpen}
@@ -701,9 +790,7 @@ export default function BlueprintDetails() {
                     <Typography variant="h6">Blueprint details</Typography>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <pre>
-                      {JSON.stringify(parsedBlueprint.rawItems, null, 2)}
-                    </pre>
+                    <pre>{JSON.stringify(parsedBlueprint, null, 2)}</pre>
                   </AccordionDetails>
                 </Accordion>
               )}
