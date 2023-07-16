@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2023-07-16
+
+### Added
+
+- Support for blueprint folders
+
+### Fixed
+
+- Bumped coi-bp-parse version to fix parsing bug
+
 ## 2023-07-14
 
 ### Added
