@@ -4,6 +4,7 @@ interface IndexedBlueprint {
   objectID: string;
   uid: string;
   username: string;
+  kind: "b" | "f" | undefined;
   name: string;
   description: string;
   gameVersion: string;

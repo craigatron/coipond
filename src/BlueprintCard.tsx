@@ -1,4 +1,4 @@
-import { CopyAll, Share } from "@mui/icons-material";
+import { CopyAll, Folder, Share } from "@mui/icons-material";
 import {
   Card,
   CardActionArea,
@@ -68,31 +68,48 @@ export default function BlueprintCard(props: {
     });
   };
 
+  const cardContents = (
+    <>
+      <CardHeader
+        avatar={props.blueprintObj.kind === "f" ? <Folder /> : undefined}
+        title={props.blueprintObj.name}
+        subheader={"Submitted by " + props.blueprintObj.username}
+      />
+      <CardMedia
+        component="img"
+        sx={{ height: 175, objectFit: "contain" }}
+        image={screenshot}
+      ></CardMedia>
+      <CardContent>
+        <Typography variant="body2">
+          <strong>Last updated: </strong>{" "}
+          {(typeof props.blueprintObj.updated === "number"
+            ? DateTime.fromMillis(props.blueprintObj.updated)
+            : DateTime.fromJSDate(props.blueprintObj.updated.toDate())
+          ).toLocaleString(DateTime.DATETIME_MED)}
+        </Typography>
+        <Typography variant="body2">
+          <strong>
+            {props.blueprintObj.kind === "b" ? "Version:" : "Min version:"}
+          </strong>{" "}
+          {props.blueprintObj.gameVersion}
+        </Typography>
+      </CardContent>
+    </>
+  );
+
   return (
     <Card variant="outlined" sx={{ maxHeight: 450, width: 400, maxWidth: 400 }}>
-      <CardActionArea component={Link} to={`/blueprints/${props.blueprintId}`}>
-        <CardHeader
-          title={props.blueprintObj.name}
-          subheader={"Submitted by " + props.blueprintObj.username}
-        />
-        <CardMedia
-          component="img"
-          sx={{ height: 175, objectFit: "contain" }}
-          image={screenshot}
-        ></CardMedia>
-        <CardContent>
-          <Typography variant="body2">
-            <strong>Last updated: </strong>{" "}
-            {(typeof props.blueprintObj.updated === "number"
-              ? DateTime.fromMillis(props.blueprintObj.updated)
-              : DateTime.fromJSDate(props.blueprintObj.updated.toDate())
-            ).toLocaleString(DateTime.DATETIME_MED)}
-          </Typography>
-          <Typography variant="body2">
-            <strong>Version: </strong> {props.blueprintObj.gameVersion}
-          </Typography>
-        </CardContent>
-      </CardActionArea>
+      {props.blueprintId === undefined ? (
+        cardContents
+      ) : (
+        <CardActionArea
+          component={Link}
+          to={`/blueprints/${props.blueprintId}`}
+        >
+          {cardContents}
+        </CardActionArea>
+      )}
       <CardActions>
         <IconButton
           onClick={handleCopyClick}

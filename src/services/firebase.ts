@@ -23,6 +23,7 @@ class UsernameTakenError extends Error {}
 interface BlueprintDoc {
   uid: string;
   username: string;
+  kind: "b" | "f";
   name: string;
   description: string;
   blueprint: string;
