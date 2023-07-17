@@ -42,12 +42,12 @@ import {
 import {
   Timestamp,
   collection,
-  deleteDoc,
   doc,
   getDoc,
   runTransaction,
   serverTimestamp,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import {
   deleteObject,
@@ -240,7 +240,14 @@ export default function BlueprintDetails() {
   const deleteScreenshot = async (blueprintDoc: BlueprintDoc) => {
     if (blueprintDoc.screenshotUrl) {
       const screenshotRef = ref(storage, blueprintDoc.screenshotUrl);
-      await deleteObject(screenshotRef);
+      try {
+        await deleteObject(screenshotRef);
+      } catch (e: any) {
+        // swallow the exception if the object is already deleted somehow
+        if (e.code !== "storage/object-not-found") {
+          throw e;
+        }
+      }
     }
   };
 
@@ -251,7 +258,17 @@ export default function BlueprintDetails() {
 
     try {
       await deleteScreenshot(blueprintDoc);
-      await deleteDoc(doc(db, "blueprints", blueprintId));
+    } catch (e: any) {
+      console.error(e);
+      errorSnack("Could not delete blueprint");
+      return;
+    }
+
+    try {
+      const batch = writeBatch(db);
+      batch.delete(doc(db, "blueprints", blueprintId));
+      batch.delete(doc(db, "blueprintVersions", blueprintId));
+      await batch.commit();
     } catch (e) {
       console.error(e);
       errorSnack("Could not delete blueprint");
@@ -589,9 +606,7 @@ export default function BlueprintDetails() {
                             <TableCell>
                               <IconButton
                                 onClick={() =>
-                                  copyBlueprintToClipboard(
-                                    blueprintDoc.blueprint
-                                  )
+                                  copyBlueprintToClipboard(v.blueprint)
                                 }
                                 aria-label="Copy blueprint"
                               >
