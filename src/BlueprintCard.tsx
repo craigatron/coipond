@@ -1,4 +1,4 @@
-import { CopyAll, Folder, Share } from "@mui/icons-material";
+import { CopyAll, Folder, Share, TextSnippet } from "@mui/icons-material";
 import {
   Card,
   CardActionArea,
@@ -71,7 +71,7 @@ export default function BlueprintCard(props: {
   const cardContents = (
     <>
       <CardHeader
-        avatar={props.blueprintObj.kind === "f" ? <Folder /> : undefined}
+        avatar={props.blueprintObj.kind === "f" ? <Folder /> : <TextSnippet />}
         title={props.blueprintObj.name}
         subheader={"Submitted by " + props.blueprintObj.username}
       />
@@ -90,7 +90,7 @@ export default function BlueprintCard(props: {
         </Typography>
         <Typography variant="body2">
           <strong>
-            {props.blueprintObj.kind === "b" ? "Version:" : "Min version:"}
+            {props.blueprintObj.kind === "f" ? "Min version:" : "Version:"}
           </strong>{" "}
           {props.blueprintObj.gameVersion}
         </Typography>
