@@ -1,0 +1,5 @@
+https://coipond.martek.dev
+https://coipond.martek.dev/about
+https://coipond.martek.dev/blueprints
+https://coipond.martek.dev/changelog
+https://coipond.martek.dev/parser
