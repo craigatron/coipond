@@ -16,7 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import BlueprintCard from "./BlueprintCard";
 import { useFirebaseAuth } from "./context/FirebaseAuthContext";
 import {
@@ -29,6 +29,7 @@ const COUNT_PER_PAGE = 20;
 
 export default function BlueprintList() {
   const { user } = useFirebaseAuth();
+  const { username } = useParams();
   const [loading, setLoading] = useState(true);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
@@ -49,10 +50,12 @@ export default function BlueprintList() {
       ) as string[];
       const index =
         sortDirection === "asc" ? updatedAscIndex : updatedDescIndex;
+      const facetFilters = username ? [`username:${username}`] : undefined;
       const results = await index.search(debouncedSearch || "", {
         page: page,
         hitsPerPage: COUNT_PER_PAGE,
         relevancyStrictness: 0,
+        facetFilters,
       });
 
       const blueprintsToShow = (results.hits as IndexedBlueprint[]).filter(
