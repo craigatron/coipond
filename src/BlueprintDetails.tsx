@@ -23,6 +23,7 @@ import {
   DialogTitle,
   Grid,
   IconButton,
+  Link,
   Paper,
   Stack,
   Table,
@@ -59,7 +60,7 @@ import { DateTime } from "luxon";
 import React, { useEffect, useState } from "react";
 import TreeView, { flattenTree } from "react-accessible-treeview";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
 import "./BlueprintDetails.css";
 import noscreenshot from "./assets/noscreenshot.png";
 import { useFirebaseAuth } from "./context/FirebaseAuthContext";
@@ -560,7 +561,13 @@ export default function BlueprintDetails() {
                 </Button>
               )}
               <Typography variant="body1" sx={{ mt: 1 }}>
-                Submitted by {blueprintDoc.username}
+                Submitted by{" "}
+                <Link
+                  component={RouterLink}
+                  to={`/blueprints/user/${blueprintDoc.username}`}
+                >
+                  {blueprintDoc.username}
+                </Link>
               </Typography>
               <Typography variant="body1" sx={{ mt: 1 }}>
                 Last updated{" "}

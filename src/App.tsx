@@ -132,6 +132,10 @@ function App() {
             element={<BlueprintAdd></BlueprintAdd>}
           ></Route>
           <Route
+            path="/blueprints/user/:username"
+            element={<BlueprintList></BlueprintList>}
+          />
+          <Route
             path="/blueprints/:blueprintId"
             element={<BlueprintDetails></BlueprintDetails>}
           ></Route>

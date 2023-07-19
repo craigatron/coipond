@@ -27,14 +27,11 @@ export default function About() {
         </Typography>
         <Typography variant="body1" component="div" sx={{ mt: 1 }}>
           <ul>
-            <li>See blueprints by user</li>
-            <li>Add new versions of an existing blueprint</li>
             <li>Sort by game version</li>
-            <li>Update blueprints</li>
             <li>Ratings</li>
             <li>See required research / downgradability</li>
-            <li>Support for blueprint folders</li>
             <li>Views/download counts</li>
+            <li>Production calculator</li>
           </ul>
         </Typography>
       </Paper>
