@@ -59,6 +59,7 @@ import {
 import { DateTime } from "luxon";
 import React, { useEffect, useState } from "react";
 import TreeView, { flattenTree } from "react-accessible-treeview";
+import { Helmet } from "react-helmet-async";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
 import "./BlueprintDetails.css";
@@ -450,6 +451,24 @@ export default function BlueprintDetails() {
 
   return (
     <>
+      <Helmet>
+        <title>The CoI Pond | {blueprintDoc.name}</title>
+        <meta
+          name="twitter:title"
+          content={"The CoI Pond | " + blueprintDoc.name}
+        />
+        <meta
+          property="og:title"
+          content={"The CoI Pond | " + blueprintDoc.name}
+        />
+        {blueprintDoc.screenshotUrl !== undefined && (
+          <>
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:image" content={blueprintDoc.screenshotUrl} />
+            <meta property="og:image" content={blueprintDoc.screenshotUrl} />
+          </>
+        )}
+      </Helmet>
       <Box maxWidth="lg" margin="auto" width="1" sx={{ mt: 4, mb: 2 }}>
         {" "}
         <Stack direction="row" spacing={1} alignItems="center">

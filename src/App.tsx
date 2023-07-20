@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { SnackbarProvider } from "notistack";
 import { useMemo, useState } from "react";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import {
   BrowserRouter,
   Navigate,
@@ -161,9 +162,32 @@ function App() {
 export default function AppWrapper() {
   return (
     <FirebaseAuthProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <HelmetProvider>
+        <BrowserRouter>
+          <Helmet>
+            <meta
+              name="description"
+              content="Captain of Industry blueprints directory and other tools."
+            />
+            <meta
+              name="twitter:title"
+              content="Captain of Industry blueprints directory and other tools."
+            />
+            <meta
+              name="twitter:description"
+              content="Captain of Industry blueprints directory and other tools."
+            />
+            <meta property="og:type" content="website" />
+            <meta property="og:url" content="https://coipond.martek.dev" />
+            <meta
+              property="og:description"
+              content="Captain of Industry blueprints directory and other tools."
+            />
+            <title>The CoI Pond | Captain of Industry blueprints</title>
+          </Helmet>
+          <App />
+        </BrowserRouter>
+      </HelmetProvider>
     </FirebaseAuthProvider>
   );
 }
