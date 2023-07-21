@@ -461,13 +461,20 @@ export default function BlueprintDetails() {
           property="og:title"
           content={"The CoI Pond | " + blueprintDoc.name}
         />
-        {blueprintDoc.screenshotUrl !== undefined && (
-          <>
-            <meta name="twitter:card" content="summary_large_image" />
-            <meta name="twitter:image" content={blueprintDoc.screenshotUrl} />
-            <meta property="og:image" content={blueprintDoc.screenshotUrl} />
-          </>
-        )}
+        <meta
+          name="twitter:card"
+          content={
+            blueprintDoc.screenshotUrl ? "summary_large_image" : "summary"
+          }
+        />
+        <meta name="twitter:image" content={blueprintDoc.screenshotUrl} />
+        <meta
+          name="twitter:image:alt"
+          content={
+            blueprintDoc.screenshotUrl ? "Blueprint screenshot" : undefined
+          }
+        />
+        <meta property="og:image" content={blueprintDoc.screenshotUrl} />
       </Helmet>
       <Box maxWidth="lg" margin="auto" width="1" sx={{ mt: 4, mb: 2 }}>
         {" "}
