@@ -169,16 +169,12 @@ export default function AppWrapper() {
               name="description"
               content="Captain of Industry blueprints directory and other tools."
             />
-            <meta
-              name="twitter:title"
-              content="Captain of Industry blueprints directory and other tools."
-            />
+            <meta name="twitter:title" content="The CoI Pond" />
             <meta
               name="twitter:description"
               content="Captain of Industry blueprints directory and other tools."
             />
-            <meta property="og:type" content="website" />
-            <meta property="og:url" content="https://coipond.martek.dev" />
+            <meta property="og:title" content="The CoI Pond" />
             <meta
               property="og:description"
               content="Captain of Industry blueprints directory and other tools."

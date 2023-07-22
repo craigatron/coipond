@@ -1,5 +1,5 @@
 {
   "projects": {
-    "default": "coipond-prod"
+    "default": "coipond-dev"
   }
 }
