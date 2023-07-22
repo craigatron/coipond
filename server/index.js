@@ -38,7 +38,7 @@ admin.initializeApp({
   projectId: process.env.PROJECT_ID
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, process.env.LOCAL === 'true' ? 'dist' : 'public')));
 
 // here we serve the index.html page
 app.get("/*", async (req, res) => {

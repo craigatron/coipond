@@ -9,7 +9,7 @@
     "build:dev": "cp CHANGELOG.md src/assets/ && tsc && vite build --mode dev",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "server": "npm run build:dev && node server/index.js"
+    "server": "npm run build:dev && cp dist/index.html server/ && rm dist/index.html && PROJECT_ID=coipond-dev LOCAL=true node server/index.js"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
