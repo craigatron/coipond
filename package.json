@@ -16,7 +16,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.13.7",
     "@mui/lab": "^5.0.0-alpha.135",
-    "@mui/material": "^5.14.0",
+    "@mui/material": "^5.14.1",
     "algoliasearch": "^4.18.0",
     "coi-bp-parse": "^0.2.3",
     "firebase": "^10.0.0",
