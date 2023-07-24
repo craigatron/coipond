@@ -30,8 +30,8 @@ const baseMeta =
   '<meta property="og:description" content="Captain of Industry blueprints directory and other tools." data-rh="true"/>';
 
 const defaultMeta = baseMeta +
-  '<meta name="twitter:title" content="Captain of Industry blueprints directory and other tools." data-rh="true"/>' +
-  '<meta property="og:title" content="Captain of Industry blueprints directory and other tools." data-rh="true"/>' +
+  '<meta name="twitter:title" content="The CoI Pond | Captain of Industry blueprints" data-rh="true"/>' +
+  '<meta property="og:title" content="The CoI Pond | Captain of Industry blueprints" data-rh="true"/>' +
   '<title data-rh="true">The CoI Pond | Captain of Industry blueprints</title>';
 
 admin.initializeApp({
