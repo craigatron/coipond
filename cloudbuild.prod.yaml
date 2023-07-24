@@ -1,0 +1,27 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--build-arg",
+        "ENV=production",
+        "-t",
+        "gcr.io/coipond-prod/server",
+        ".",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/coipond-prod/server"]
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "deploy",
+        "server",
+        "--image",
+        "gcr.io/coipond-prod/server",
+        "--region",
+        "us-central1",
+      ]
+images:
+  - gcr.io/coipond-prod/server

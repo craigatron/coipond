@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "cp CHANGELOG.md src/assets/ && vite --mode dev",
     "build": "cp CHANGELOG.md src/assets/ && tsc && vite build",
+    "build:dev": "cp CHANGELOG.md src/assets/ && tsc && vite build --mode dev",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "npm run build:dev && cp dist/index.html server/ && rm dist/index.html && PROJECT_ID=coipond-dev LOCAL=true node server/index.js"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -45,5 +47,13 @@
     "prettier": "^3.0.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.4"
-  }
+  },
+  "directories": {
+    "serve": "dist"
+  },
+  "files": [
+    "dist",
+    "server/index.js"
+  ],
+  "main": "server/index.js"
 }

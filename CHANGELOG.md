@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2023-07-22
+
+### Added
+
+- Server side rendering to support social preview cards.
+
 ## 2023-07-18
 
 ### Added
