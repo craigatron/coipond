@@ -69,7 +69,7 @@ export default function BlueprintList() {
     };
 
     loadBlueprints();
-  }, [debouncedSearch, page, sortDirection]);
+  }, [debouncedSearch, page, sortDirection, username]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
