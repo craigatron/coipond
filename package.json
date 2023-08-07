@@ -46,7 +46,7 @@
     "firebase-tools": "^12.4.4",
     "prettier": "^3.0.0",
     "typescript": "^5.0.2",
-    "vite": "^4.4.4"
+    "vite": "^4.4.9"
   },
   "directories": {
     "serve": "dist"
