@@ -1,4 +1,4 @@
-node_modules
-**/node_modules
-.firebase
-.git
+.gcloudignore
+#!include:.gitignore
+#!include:.dockerignore
+!Dockerfile

@@ -1,28 +1,44 @@
-FROM node:18-alpine AS fe-builder
-ARG ENV
+FROM node:18-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
 WORKDIR /app
 
-COPY package*.json ./
+# Install dependencies based on the preferred package manager
+COPY package.json package-lock.json* ./
 RUN npm ci
-COPY src ./src
-COPY public ./public
+
+# Rebuild the source code only when needed
+FROM base AS builder
+ARG ENV
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 COPY .env.${ENV} .env.production
-COPY tsconfig.json tsconfig.node.json vite.config.ts index.html CHANGELOG.md ./
+
 RUN npm run build
 
-FROM node:18-alpine
-ARG ENV
-COPY server/package*.json ./
-RUN npm ci --omit=dev
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
 
-COPY server/index.js ./
-COPY .env.${ENV} .env
-COPY --from=fe-builder /app/dist/index.html ./
+ENV NODE_ENV production
 
-RUN mkdir public
-COPY --from=fe-builder /app/dist public/
-RUN rm public/index.html
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-EXPOSE 8080
+USER nextjs
 
-CMD ["node", "index.js"]
+COPY --from=builder /app/public ./public
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 3000
+
+ENV PORT 3000
+ENV HOSTNAME localhost
+
+CMD ["node", "server.js"]

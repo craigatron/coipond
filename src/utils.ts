@@ -1,3 +1,5 @@
+"use client";
+
 import { BlueprintFolder } from "coi-bp-parse";
 import { enqueueSnackbar } from "notistack";
 

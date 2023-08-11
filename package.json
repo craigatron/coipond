@@ -1,59 +1,45 @@
 {
   "name": "coipond",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "cp CHANGELOG.md src/assets/ && vite --mode dev",
-    "build": "cp CHANGELOG.md src/assets/ && tsc && vite build",
-    "build:dev": "cp CHANGELOG.md src/assets/ && tsc && vite build --mode dev",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "server": "npm run build:dev && cp dist/index.html server/ && rm dist/index.html && PROJECT_ID=coipond-dev LOCAL=true node server/index.js"
+    "dev": "next dev",
+    "build": "next build",
+    "build:dev": "env-cmd -f .env.development next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.13.7",
-    "@mui/lab": "^5.0.0-alpha.137",
-    "@mui/material": "^5.14.1",
-    "algoliasearch": "^4.18.0",
+    "@mui/icons-material": "^5.14.3",
+    "@mui/lab": "^5.0.0-alpha.138",
+    "@mui/material": "^5.14.3",
+    "@types/node": "20.4.8",
+    "@types/react": "18.2.18",
+    "@types/react-dom": "18.2.7",
+    "algoliasearch": "^4.19.1",
+    "autoprefixer": "10.4.14",
     "coi-bp-parse": "^0.2.3",
-    "firebase": "^10.0.0",
+    "eslint": "8.46.0",
+    "eslint-config-next": "13.4.12",
+    "firebase": "^9.23.0",
+    "firebase-admin": "^11.10.1",
     "luxon": "^3.3.0",
+    "next": "^13.4.13-canary.16",
     "notistack": "^3.0.1",
-    "react": "^18.2.0",
-    "react-accessible-treeview": "^2.6.2",
-    "react-dom": "^18.2.0",
-    "react-helmet-async": "^1.3.0",
+    "postcss": "8.4.27",
+    "react": "18.2.0",
+    "react-accessible-treeview": "^2.6.3",
+    "react-dom": "18.2.0",
     "react-markdown": "^8.0.7",
-    "react-router-dom": "^6.14.2"
+    "reactfire": "^4.2.3",
+    "tailwindcss": "3.3.3",
+    "typescript": "5.1.6"
   },
   "devDependencies": {
-    "@types/luxon": "^3.3.0",
-    "@types/react": "^18.2.15",
-    "@types/react-dom": "^18.2.7",
-    "@typescript-eslint/eslint-plugin": "^5.61.0",
-    "@typescript-eslint/parser": "^5.62.0",
-    "@vitejs/plugin-react": "^4.0.3",
-    "eslint": "^8.45.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-jsx-a11y": "^6.7.1",
-    "eslint-plugin-react": "^7.33.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
-    "firebase-tools": "^12.4.4",
-    "prettier": "^3.0.0",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.4"
-  },
-  "directories": {
-    "serve": "dist"
-  },
-  "files": [
-    "dist",
-    "server/index.js"
-  ],
-  "main": "server/index.js"
+    "@types/luxon": "^3.3.1",
+    "env-cmd": "^10.1.0"
+  }
 }

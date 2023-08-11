@@ -1,13 +1,10 @@
 {
   "hosting": {
-    "rewrites": [
-      {
-        "source": "**",
-        "run": {
-          "serviceId": "server",
-          "region": "us-central1"
-        }
-      }
-    ]
+    "source": ".",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "frameworksBackend": {
+      "region": "us-central1"
+    },
+    "predeploy": "./firebase-deploy.sh"
   }
 }
