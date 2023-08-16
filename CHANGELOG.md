@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2023-08-15
+
+### Changed
+
+- Rewrote app in Next.js for better SSR support.
+
 ## 2023-07-22
 
 ### Added
