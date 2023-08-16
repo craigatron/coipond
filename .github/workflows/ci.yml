@@ -25,5 +25,5 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
       - run: npm ci
-      - run: cp env.sample env.local && npm run build
+      - run: cp .env.sample .env.local && npm run build
     # TODO: add linting and tests
