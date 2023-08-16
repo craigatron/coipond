@@ -10,7 +10,7 @@ steps:
         ".",
       ]
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/coipond-dev/server"]
+    args: ["push", "gcr.io/coipond-prod/server"]
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
     args:
