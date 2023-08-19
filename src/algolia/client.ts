@@ -20,7 +20,13 @@ const client = algoliasearch(
   process.env.NEXT_PUBLIC_VITE_ALGOLIA_KEY!
 );
 
-const updatedDescIndex = client.initIndex("blueprints_updated_desc");
-const updatedAscIndex = client.initIndex("blueprints_updated_asc");
+const indices = {
+  updated_desc: client.initIndex("blueprints_updated_desc"),
+  updated_asc: client.initIndex("blueprints_updated_asc"),
+  downloads_desc: client.initIndex("blueprints_downloads_desc"),
+  downloads_asc: client.initIndex("blueprints_downloads_asc"),
+  views_desc: client.initIndex("blueprints_views_desc"),
+  views_asc: client.initIndex("blueprints_views_asc"),
+};
 
-export { updatedAscIndex, updatedDescIndex, type IndexedBlueprint };
+export { indices, type IndexedBlueprint };

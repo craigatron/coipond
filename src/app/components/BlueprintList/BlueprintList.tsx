@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  IndexedBlueprint,
-  updatedAscIndex,
-  updatedDescIndex,
-} from "@/algolia/client";
+import { IndexedBlueprint, indices } from "@/algolia/client";
 import BlueprintCard from "@/app/components/BlueprintCard/BlueprintCard";
 import { useFirebaseAuth } from "@/firebase/FirebaseAuthContext";
 import { ChevronLeft, ChevronRight, Search } from "@mui/icons-material";
@@ -29,6 +25,8 @@ import { useEffect, useState } from "react";
 
 const COUNT_PER_PAGE = 20;
 
+type Sort = "updated" | "views" | "downloads";
+
 export default function BlueprintList(props: { username?: string }) {
   const { user } = useFirebaseAuth();
   const [loading, setLoading] = useState(true);
@@ -36,7 +34,7 @@ export default function BlueprintList(props: { username?: string }) {
   const [page, setPage] = useState(0);
   const [numPages, setNumPages] = useState(0);
   const [blueprints, setBlueprints] = useState<IndexedBlueprint[]>([]);
-  const [sort, setSort] = useState("updated");
+  const [sort, setSort] = useState<Sort>("updated");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -49,8 +47,7 @@ export default function BlueprintList(props: { username?: string }) {
       const recentlyDeleted = JSON.parse(
         sessionStorage.getItem("recently-deleted") || "[]"
       ) as string[];
-      const index =
-        sortDirection === "asc" ? updatedAscIndex : updatedDescIndex;
+      const index = indices[`${sort}_${sortDirection}`];
       const facetFilters = props.username
         ? [`username:${props.username}`]
         : undefined;
@@ -72,7 +69,7 @@ export default function BlueprintList(props: { username?: string }) {
     };
 
     loadBlueprints();
-  }, [debouncedSearch, page, sortDirection, props]);
+  }, [debouncedSearch, page, sort, sortDirection, props]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -89,6 +86,11 @@ export default function BlueprintList(props: { username?: string }) {
 
   const handleNextPageClick = () => {
     setPage(page + 1);
+  };
+
+  const handleSortChange = (e: SelectChangeEvent) => {
+    setSort(e.target.value as Sort);
+    setPage(0);
   };
 
   const handleSortDirectionChange = (e: SelectChangeEvent) => {
@@ -116,9 +118,11 @@ export default function BlueprintList(props: { username?: string }) {
             labelId="sort-label"
             value={sort}
             label="Sort"
-            onChange={(e) => setSort(e.target.value)}
+            onChange={handleSortChange}
           >
             <MenuItem value={"updated"}>Last updated</MenuItem>
+            <MenuItem value={"downloads"}>Downloads</MenuItem>
+            <MenuItem value={"views"}>Views</MenuItem>
           </Select>
         </FormControl>
         <FormControl sx={{ minWidth: 100 }} size="small">

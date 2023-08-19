@@ -5,6 +5,7 @@ import { db } from "@/firebase/client-config";
 import { BlueprintDoc } from "@/firebase/data";
 import { CopyAll, Folder, Share, TextSnippet } from "@mui/icons-material";
 import {
+  Box,
   Card,
   CardActionArea,
   CardActions,
@@ -59,6 +60,9 @@ export default function BlueprintCard(props: {
       variant: "success",
       anchorOrigin: { vertical: "top", horizontal: "center" },
     });
+    if (props.blueprintId) {
+      fetch(`/api/blueprints/${props.blueprintId}/download`);
+    }
   };
 
   const handleShareClick = () => {
@@ -112,7 +116,7 @@ export default function BlueprintCard(props: {
           {cardContents}
         </CardActionArea>
       )}
-      <CardActions>
+      <CardActions sx={{ display: "flex" }}>
         <IconButton
           onClick={handleCopyClick}
           aria-label="Copy blueprint"
@@ -129,6 +133,15 @@ export default function BlueprintCard(props: {
             <Share />
           </IconButton>
         )}
+        <Box flex={1}></Box>
+        <Box display="flex" flexDirection="column">
+          <Typography variant="body2" textAlign="end">
+            <strong>Views:</strong> {props.blueprintObj.views}
+          </Typography>
+          <Typography variant="body2" textAlign="end">
+            <strong>Downloads:</strong> {props.blueprintObj.downloads}
+          </Typography>
+        </Box>
       </CardActions>
     </Card>
   );
