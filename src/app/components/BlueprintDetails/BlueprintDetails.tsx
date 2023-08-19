@@ -174,6 +174,7 @@ export default function BlueprintDetails(props: {
     }
 
     copyBlueprintToClipboard(blueprintDoc.blueprint);
+    fetch(`/api/blueprints/${props.bpId}/download`);
   };
 
   const deleteScreenshot = async (blueprintDoc: BlueprintDoc) => {
@@ -532,6 +533,12 @@ export default function BlueprintDetails(props: {
                   ? "Minimum game version"
                   : "Created with game version"}{" "}
                 {blueprintDoc.gameVersion}
+              </Typography>
+              <Typography variant="body1" sx={{ mt: 1 }}>
+                Views: {blueprintDoc.views}
+              </Typography>
+              <Typography variant="body1" sx={{ mt: 1 }}>
+                Downloads: {blueprintDoc.downloads}
               </Typography>
               {blueprintVersions && (
                 <>

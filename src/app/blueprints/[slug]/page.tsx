@@ -1,6 +1,11 @@
 import BlueprintDetails from "@/app/components/BlueprintDetails/BlueprintDetails";
 import { BlueprintDoc } from "@/firebase/data";
-import { getBlueprint, getBlueprintVersions } from "@/firebase/server-config";
+import {
+  db,
+  getBlueprint,
+  getBlueprintVersions,
+} from "@/firebase/server-config";
+import { FieldValue } from "firebase-admin/firestore";
 import { Metadata } from "next";
 import { Twitter } from "next/dist/lib/metadata/types/twitter-types";
 import { notFound } from "next/navigation";
@@ -56,6 +61,11 @@ export default async function Page({ params }: { params: { slug: string } }) {
   if (!bpDoc) {
     notFound();
   }
+
+  const ref = db.collection("blueprints").doc(params.slug);
+  await ref.update({
+    views: FieldValue.increment(1),
+  });
 
   const versions = (await getBlueprintVersions(params.slug)) || undefined;
 
