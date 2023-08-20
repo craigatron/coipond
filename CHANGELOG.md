@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2023-08-20
+
+### Added
+
+- View and download counts.
+
 ## 2023-08-15
 
 ### Changed
