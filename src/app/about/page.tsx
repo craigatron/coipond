@@ -30,7 +30,6 @@ export default function About() {
             <li>Sort by game version</li>
             <li>Ratings</li>
             <li>See required research / downgradability</li>
-            <li>Views/download counts</li>
             <li>Production calculator</li>
           </ul>
         </Typography>
