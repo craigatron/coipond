@@ -26,7 +26,7 @@
     "eslint-config-next": "13.4.19",
     "firebase": "^9.23.0",
     "firebase-admin": "^11.10.1",
-    "luxon": "^3.3.0",
+    "luxon": "^3.4.2",
     "next": "^13.4.13-canary.16",
     "notistack": "^3.0.1",
     "postcss": "8.4.27",
@@ -39,7 +39,7 @@
     "typescript": "5.1.6"
   },
   "devDependencies": {
-    "@types/luxon": "^3.3.1",
+    "@types/luxon": "^3.3.2",
     "env-cmd": "^10.1.0"
   }
 }
